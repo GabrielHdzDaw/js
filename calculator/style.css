@@ -1,0 +1,16 @@
+.main-container{
+    margin: 0 auto;
+    background-color: aquamarine;
+    
+}
+
+.button-container{
+    display: grid;
+    grid-template-columns: 0.3fr 0.3fr 0.3fr;
+    
+    gap: 5px;
+}
+
+.button-container button{
+    width: 40px;
+}
