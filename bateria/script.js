@@ -13,11 +13,7 @@ function playSound(e) {
 
 window.addEventListener('keydown', playSound)
 window.addEventListener('keydown', animateKey)
-window.addEventListener('keyup', e => {
-    const key = document.querySelector(`div[data-key="${e.key}"]`)
-    if (!key) return;
-    key.classList.remove('playing')
-})
+window.addEventListener('keyup', deanimateKey)
 
 // window.addEventListener('keydown', e => {
 //     let key = e.key;
