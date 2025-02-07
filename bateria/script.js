@@ -15,6 +15,16 @@ window.addEventListener('keydown', playSound)
 window.addEventListener('keydown', animateKey)
 window.addEventListener('keyup', deanimateKey)
 
+const slider = document.getElementById('pitch')
+
+slider.addEventListener('input', () => {
+    const audios = document.querySelectorAll('audio')
+    audios.forEach(audio => {
+        audio.playbackRate = slider.value
+    })
+})
+
+
 // window.addEventListener('keydown', e => {
 //     let key = e.key;
 //     document.querySelector(`audio[data-key="${key}"]`).play();
