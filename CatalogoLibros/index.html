@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css">
+    <title>Catálogo de libros</title>
+  </head>
+  <body>
+    <dialog>
+      <form>
+        <input type="text" name="titulo" id="titulo" placeholder="Titulo" />
+        <input type="text" name="autor" id="autor" placeholder="Autor" />
+        <input
+          type="number"
+          name="paginas"
+          id="paginas"
+          placeholder="Paginas"
+        />
+        <label for="leido">Leído</label>
+        <input type="checkbox" name="leido" id="leido" />
+        <button>Añadir</button>
+      </form>
+    </dialog>
+    <table>
+      <thead>
+        <th><button id="addLibro">Añadir Libro</button></th>
+        <th><button id="mostrarLibros">Mostrar Libros</button></th>
+      </thead>
+      <thead>
+        <tr>
+          <th>Titulo</th>
+          <th>Autor</th>
+          <th>Paginas</th>
+          <th>Leído</th>
+        </tr>
+      </thead>
+      <template>
+        <tbody>
+          
+        </tbody>
+      </template>
+    </table>
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -21,6 +21,7 @@ slider.addEventListener('input', () => {
     const audios = document.querySelectorAll('audio')
     audios.forEach(audio => {
         audio.playbackRate = slider.value
+        audio.preservesPitch = false
     })
 })
 
