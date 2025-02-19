@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>TODO App</title>
+</head>
+<body>
+    <main>
+        <div class="container">
+            <div class="header">
+                <h1>TODO List App</h1>
+                <button id="addProjectButton">Añadir proyecto</button>
+                <button id="saveButton">Guardar</button>
+            </div>
+            <section id="projectList">
+                <h2>Proyectos</h2>
+
+            </section>
+            <template class="project">
+                <article>
+                    <h2 class="project-name"></h2>
+                    <p class="project-description"></p>
+                    <button class="add-note">Añadir nota</button>
+                    <button class="delete-project">Eliminar proyecto</button>
+                </article>
+                
+            </template>
+            <template class="note">
+                <article>
+                    <h3 class="note-name"></h3>
+                    <label for="complete">Completada</label>
+                    <input type="checkbox" name="complete">
+                </article>
+                
+            </template>
+            <template class="complex-note">
+                <article>
+                    <h3 class="note-name"></h3>
+                    <p class="note-description"></p>
+                    <label for="completeComplex">Completada</label>
+                    <input type="checkbox" name="completeComplex">
+                </article>
+                
+            </template>
+
+        </div>
+        <dialog id="addProjectDialog" >
+            <form id="addProjectForm">
+                <h3>Nuevo proyecto</h3>
+                <label for="projectName">Nombre del proyecto</label>
+                <input type="text" name="projectName" id="projectName">
+                <label for="projectDescription">Descripción del proyecto</label>
+                <input type="text" name="projectDescription" id="projectDescription">
+                <button type="submit">Crear</button>
+                <button id="cancelProjectButton">Cancelar</button>
+            </form>
+        </dialog>
+        <dialog id="addNoteDialog">
+            <form id="addNoteForm">
+                <h3>Nueva nota</h3>
+                <label for="noteTitle">Titulo</label>
+                <input type="text" name="noteTitle" id="noteTitle">
+                <label for="color">Color:</label>
+                <input type="color" name="color" id="color">
+                <label for="addDescription">Añadir descripción</label>
+                <input type="checkbox" name="addDescription" id="addDescription">
+                <button type="submit">Crear</button>
+                <button id="cancelNoteButton">Cancelar</button>
+            </form>
+    </main>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
