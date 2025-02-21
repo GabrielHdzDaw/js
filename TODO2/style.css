@@ -1,3 +1,181 @@
+@import url("https://fonts.googleapis.com/css2?family=Doto:wght@100..900&family=Jacquard+12&family=Jacquard+24&family=Jersey+25&display=swap");
+/*
+ * 
+ * Fuentes disponibles:
+ * - Doto
+ * - Jacquard 12
+ * - Jacquard 24
+ * - Jersey 25
+ */
+
+body {
+  background-color: #f1efe6;
+  margin: 0;
+  padding: 0;
+}
+header h1 {
+  font-family: "Doto", sans-serif;
+  font-size: 2.5em;
+  color: #747474;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+header div {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+header p {
+  font-family: "Doto", sans-serif;
+  font-size: 1.5em;
+  color: #747474;
+  margin-top: 0;
+}
 .note-color {
-    border-left: #fff solid 1px;
+  border-left: #fff solid 1px;
+}
+
+.project-section {
+  font-family: "Jacquard 12", sans-serif;
+  font-size: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.project-section h2 {
+  font-size: 2.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.project {
+  font-family: "Jacquard 12", sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.project h3 {
+  font-size: 2.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.project p {
+  font-size: 2.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-left: 20px;
+}
+
+.project div {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.note h3 {
+  font-family: "Jacquard 12", sans-serif;
+  font-size: 1.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.note {
+  font-family: "Jacquard 12", sans-serif;
+  font-size: 2.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.note label {
+  font-size: 1.5rem;
+  color: #292929;
+  margin-top: 0;
+}
+
+#createProjectButton {
+  transition: 0.3s;
+  font-family: "Jacquard 24", sans-serif;
+  font-size: 2.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-bottom: 0;
+  
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+#createProjectButton:hover {
+  transition: 0.4s;
+  text-shadow: #292929 1px 1px 1px;
+  transform: scale(1.1);
+  background-color: aliceblue;
+  border-radius: 20px;
+}
+
+.delete-note-button, .create-note-button {
+  transition: 0.3s;
+  font-family: "Jacquard 12", sans-serif;
+  font-size: 1.5rem;
+  color: #292929;
+  margin-top: 0;
+  margin-bottom: 0;
+  
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.delete-project-button {
+    transition: 0.3s;
+    font-family: "Jacquard 12", sans-serif;
+    font-size: 1.5rem;
+    color: #292929;
+    margin-top: 0;
+    margin-bottom: 0;
+    
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+
+.delete-note-button:hover, .create-note-button:hover, .delete-project-button:hover {
+  transition: 0.3s;
+  text-shadow: #292929 1px 1px 1px;
+  transform: scale(1.1);
+}
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0;
+  margin-bottom: 0;
+  
+  width: 40%;
+  margin: 0 auto;
 }

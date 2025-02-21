@@ -30,7 +30,7 @@ export class Note {
   }
   
   toString() {
-    return `Title: ${this._title}, Complete: ${this._complete}`;
+    return `Title: ${this._title}, Complete: ${this._complete} Color: ${this._color}`;
   }
 }
 
