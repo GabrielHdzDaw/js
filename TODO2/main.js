@@ -3,104 +3,238 @@ import { Note, ComplexNote } from "./note.js";
 
 // #region TODOList class
 class TODOList {
-    constructor() {
-        this.projects = [];
-    }
-    addProject(project) {
-        this.projects.push(project);
-    }
-    removeProject(project) {
-        this.projects = this.projects.filter((p) => p !== project);
-    }
+  constructor() {
+    this.projects = [];
+  }
+  addProject(project) {
+    this.projects.push(project);
+  }
+  removeProject(project) {
+    this.projects = this.projects.filter((p) => p !== project);
+  }
 
-    renderProjects() {
-        projectList.innerHTML = '';
-        this.projects.forEach((project) => {
-            const projectTemplateClone = projectTemplate.content.cloneNode(true);
-            projectTemplateClone.querySelector('.project-title').textContent = project.name;
-            projectTemplateClone.querySelector('.project-description').textContent = project.description;
-            this.renderNotes(project, projectTemplateClone);
-            
-            projectTemplateClone.querySelector('.create-note-button').addEventListener('click', () => {
-                noteDialog.dataset.currentProject = this.projects.indexOf(project); // Guarda el índice del proyecto
-                noteDialog.showModal();
-            });
-            
-            projectTemplateClone.querySelector('.delete-project-button').addEventListener('click', () => {
-                this.removeProject(project);
-                this.renderProjects();
-            });
-            
-            projectList.appendChild(projectTemplateClone);
+  renderProjects() {
+    projectList.innerHTML = "";
+    this.projects.forEach((project) => {
+      const projectTemplateClone = projectTemplate.content.cloneNode(true);
+      projectTemplateClone.querySelector(".project-title").textContent =
+        project.name;
+      projectTemplateClone.querySelector(".project-description").textContent =
+        project.description;
+      this.renderNotes(project, projectTemplateClone);
+
+      projectTemplateClone
+        .querySelector(".create-note-button")
+        .addEventListener("click", () => {
+          noteDialog.dataset.currentProject = this.projects.indexOf(project); // Guarda el índice del proyecto
+          noteDialog.showModal();
         });
-    }
 
-    renderNotes(project, projectTemplateClone) {
-        project.notes.forEach((note) => {
-            const noteTemplateClone = noteTemplate.content.cloneNode(true);
-            noteTemplateClone.querySelector('.note-title').textContent = note.title;
-            noteTemplateClone.querySelector('.note-complete').checked = note.complete;
-            
-            noteTemplateClone.querySelector('.note-complete').addEventListener('change', (event) => {
-                note.complete = event.target.checked;
-            });
-            
-            noteTemplateClone.querySelector('.delete-note-button').addEventListener('click', () => {
+      projectTemplateClone
+        .querySelector(".delete-project-button")
+        .addEventListener("click", () => {
+          this.removeProject(project);
+          this.renderProjects();
+          saveData();
+        });
+
+      projectList.appendChild(projectTemplateClone);
+    });
+  }
+
+  renderNotes(project, projectTemplateClone) {
+    const noteList = projectTemplateClone.querySelector(".note-list");
+    
+    project.notes.forEach((note) => {
+        let noteTemplateClone;
+        
+        if (note instanceof ComplexNote) {
+            noteTemplateClone = complexNoteTemplate.content.cloneNode(true);
+            noteTemplateClone.querySelector(".note-description").textContent = note.description;
+        } else {
+            noteTemplateClone = noteTemplate.content.cloneNode(true);
+        }
+        
+        // Configurar elementos comunes
+        const noteElement = noteTemplateClone.querySelector(".note");
+        noteElement.querySelector(".note-title").textContent = note.title;
+        
+        // Configurar el botón de eliminar
+        const deleteButton = noteElement.querySelector(".delete-note-button");
+        if (deleteButton) {
+            deleteButton.addEventListener("click", (e) => {
+                e.stopPropagation(); // Prevenir que el evento se propague
                 project.removeNote(note);
                 this.renderProjects();
+                saveData();
             });
-            
-            projectTemplateClone.querySelector('.note-list').appendChild(noteTemplateClone);
-        });
-    }
+        }
+        
+        // Configurar el color si existe
+        if (note.color) {
+            noteElement.style.backgroundColor = note.color;
+        }
+        
+        noteList.appendChild(noteTemplateClone);
+    });
+}
 }
 
 const todoList = new TODOList();
-const createProjectButton = document.getElementById('createProjectButton');
-const projectList = document.getElementById('projectList');
+const createProjectButton = document.getElementById("createProjectButton");
+const projectList = document.getElementById("projectList");
 
-const projectDialog = document.getElementById('projectDialog');
-const projectForm = document.getElementById('projectForm');
+const projectDialog = document.getElementById("projectDialog");
+const projectForm = document.getElementById("projectForm");
 
-const noteDialog = document.getElementById('noteDialog');
-const noteForm = document.getElementById('noteForm');
+const projectTemplate = document.getElementById("projectTemplate");
+const noteTemplate = document.getElementById("noteTemplate");
+const complexNoteTemplate = document.getElementById("complexNoteTemplate");
 
-const projectTemplate = document.getElementById('projectTemplate');
-const noteTemplate = document.getElementById('noteTemplate');
-const complexNoteTemplate = document.getElementById('complexNoteTemplate');
+const noteDialog = document.getElementById("noteDialog");
+const noteDescriptionCheckbox = document.getElementById("noteDescription");
+const noteForm = document.getElementById("noteForm");
 
-createProjectButton.addEventListener('click', () => {
-    projectDialog.showModal();
+const descriptionField = document.createElement("div");
+descriptionField.innerHTML = `
+  <label for="noteDescriptionText">Descripción</label>
+  <textarea name="noteDescriptionText" id="noteDescriptionText"></textarea>
+`;
+descriptionField.style.display = "none";
+noteForm.insertBefore(descriptionField, noteForm.querySelector("button"));
+
+noteDescriptionCheckbox.addEventListener("change", (event) => {
+  descriptionField.style.display = event.target.checked ? "block" : "none";
 });
 
-projectForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formData = new FormData(projectForm);
-    const name = formData.get('projectName');
-    const description = formData.get('projectDescription');
-    const project = new Project(name, description, []);
-    todoList.addProject(project);
-    projectDialog.close();
-    todoList.renderProjects();
-    console.log(`Project created: ${project}`);
+createProjectButton.addEventListener("click", () => {
+  projectDialog.showModal();
 });
 
-noteForm.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formData = new FormData(noteForm);
-    const title = formData.get('noteTitle');
-    const color = formData.get('noteColor');
-    const projectIndex = noteDialog.dataset.currentProject; // Obtener el proyecto almacenado
+projectForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(projectForm);
+  const name = formData.get("projectName");
+  const description = formData.get("projectDescription");
+  const project = new Project(name, description, []);
+  todoList.addProject(project);
+  projectDialog.close();
+  todoList.renderProjects();
+  console.log(`Project created: ${project}`);
+  saveData();
+});
 
-    if (projectIndex === undefined) {
-        console.error("No project selected for the note.");
-        return;
-    }
+noteForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(noteForm);
+  const title = formData.get("noteTitle");
+  const color = formData.get("noteColor");
+  const isComplex = noteDescriptionCheckbox.checked;
+  const projectIndex = noteDialog.dataset.currentProject;
 
-    const note = new Note(title, color, false);
-    todoList.projects[projectIndex].addNote(note); // Agregar al proyecto correcto
+  if (projectIndex === undefined) {
+    console.error("No project selected for the note.");
+    return;
+  }
+
+  let note;
+  if (isComplex) {
+    const description = formData.get("noteDescriptionText");
+    note = new ComplexNote(title, color, false, description);
+  } else {
+    note = new Note(title, color, false);
+  }
+
+  todoList.projects[projectIndex].addNote(note);
+  noteDialog.close();
+  noteForm.reset();
+  descriptionField.style.display = "none";
+  todoList.renderProjects();
+  saveData();
+});
+
+const allNotes = document.querySelectorAll(".note");
+document.addEventListener("click", (event) => {
+  if (event.target.classList.contains("note")) {
     
-    noteDialog.close();
-    todoList.renderProjects();
-    console.log(`Note created in project ${projectIndex}: ${note}`);
+    if (event.target.classList.contains("note-inset")) {
+      
+      event.target.classList.remove("note-inset");
+      event.target.classList.add("note-normal");
+      event.target.classList.remove("note-completed");
+    } else {
+      event.target.classList.remove("note-normal");
+      event.target.classList.add("note-inset");
+      event.target.classList.add("note-completed");
+      
+    }
+  }
+});
+
+document.querySelectorAll(".animated-text").forEach((text) => {
+  let letters = text.textContent.split("");
+  text.textContent = "";
+  letters.forEach((letter) => {
+    let span = document.createElement("span");
+    span.textContent = letter;
+    text.appendChild(span);
+  });
+});
+
+// #region LocalStorage
+function saveData() {
+  const projectsData = todoList.projects.map((project) => ({
+    name: project.name,
+    description: project.description,
+    notes: project.notes.map((note) => {
+      const baseNote = {
+        type: note instanceof ComplexNote ? "complex" : "simple",
+        title: note.title,
+        color: note.color,
+        complete: note.complete,
+      };
+
+      if (note instanceof ComplexNote) {
+        baseNote.description = note.description;
+      }
+
+      return baseNote;
+    }),
+  }));
+
+  localStorage.setItem("todoList", JSON.stringify(projectsData));
+}
+
+function loadData() {
+  const data = localStorage.getItem("todoList");
+  if (data) {
+    const projectsData = JSON.parse(data);
+    projectsData.forEach((projData) => {
+      const project = new Project(projData.name, projData.description, []);
+
+      if (projData.notes && Array.isArray(projData.notes)) {
+        projData.notes.forEach((noteData) => {
+          let note;
+          if (noteData.type === "complex") {
+            note = new ComplexNote(
+              noteData.title,
+              noteData.color,
+              noteData.complete,
+              noteData.description
+            );
+          } else {
+            note = new Note(noteData.title, noteData.color, noteData.complete);
+          }
+          project.addNote(note);
+        });
+      }
+
+      todoList.addProject(project);
+    });
+  }
+}
+
+window.addEventListener("load", () => {
+  loadData();
+  todoList.renderProjects();
 });
