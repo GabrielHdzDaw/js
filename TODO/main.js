@@ -79,6 +79,10 @@ class TODOList {
   }
 }
 // #region Constants
+const container = document.querySelector(".container");
+const projectSection = document.querySelector(".project-section");
+const fontSelect = document.getElementById("fontSelect");
+
 const bodyColorInput = document.getElementById("bodyColor");
 const containerColorInput = document.getElementById("containerColor");
 
@@ -114,14 +118,22 @@ createProjectButton.addEventListener("click", () => {
 });
 
 // #region Event listeners
+fontSelect.addEventListener("change", (event) => {
+  const font = event.target.value;
+  projectSection.style.fontFamily = font;
+  localStorage.setItem("selectedFont", font);
+});
 
 bodyColorInput.addEventListener("input", (event) => {
-  document.body.style.backgroundColor = event.target.value;
+  const color = event.target.value;
+  document.body.style.backgroundColor = color;
+  localStorage.setItem("bodyBackgroundColor", color);
 });
 
 containerColorInput.addEventListener("input", (event) => {
-  document.querySelector(".container").style.backgroundColor =
-    event.target.value;
+  const color = event.target.value;
+  container.style.backgroundColor = color;
+  localStorage.setItem("containerBackgroundColor", color);
 });
 
 projectForm.addEventListener("submit", (event) => {
@@ -242,4 +254,22 @@ function loadData() {
 window.addEventListener("load", () => {
   loadData();
   todoList.renderProjects();
+
+  const savedBodyColor = localStorage.getItem("bodyBackgroundColor");
+  if (savedBodyColor) {
+    document.body.style.backgroundColor = savedBodyColor;
+    bodyColorInput.value = savedBodyColor;
+  }
+
+  const savedContainerColor = localStorage.getItem("containerBackgroundColor");
+  if (savedContainerColor) {
+    container.style.backgroundColor = savedContainerColor;
+    containerColorInput.value = savedContainerColor;
+  }
+
+  const savedFont = localStorage.getItem("selectedFont");
+  if (savedFont) {
+    projectSection.style.fontFamily = savedFont;
+    fontSelect.value = savedFont;
+  }
 });
