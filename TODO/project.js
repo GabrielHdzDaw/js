@@ -1,3 +1,5 @@
+import { Note, ComplexNote } from "./note.js";
+
 export class Project {
   constructor(name, description, notes) {
     this._name = name;
@@ -34,7 +36,7 @@ export class Project {
   }
 
   removeNote(note) {
-    this._notes = this._notes.filter((n) => n !== note);
+    this._notes = this._notes.filter(n => n !== note);
   }
 
   toString() {

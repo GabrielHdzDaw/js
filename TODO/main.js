@@ -12,324 +12,234 @@ class TODOList {
   removeProject(project) {
     this.projects = this.projects.filter((p) => p !== project);
   }
+  // #region Render methods
+  renderProjects() {
+    projectList.innerHTML = "";
+    this.projects.forEach((project) => {
+      const projectTemplateClone = projectTemplate.content.cloneNode(true);
+      projectTemplateClone.querySelector(".project-title").textContent =
+        project.name;
+      projectTemplateClone.querySelector(".project-description").textContent =
+        project.description;
+      this.renderNotes(project, projectTemplateClone);
+
+      projectTemplateClone
+        .querySelector(".create-note-button")
+        .addEventListener("click", () => {
+          noteDialog.dataset.currentProject = this.projects.indexOf(project); // Guarda el índice del proyecto
+          noteDialog.showModal();
+        });
+
+      projectTemplateClone
+        .querySelector(".delete-project-button")
+        .addEventListener("click", () => {
+          this.removeProject(project);
+          this.renderProjects();
+          saveData();
+        });
+
+      projectList.appendChild(projectTemplateClone);
+    });
+  }
+
+  renderNotes(project, projectTemplateClone) {
+    const noteList = projectTemplateClone.querySelector(".note-list");
+
+    project.notes.forEach((note) => {
+      let noteTemplateClone;
+
+      if (note instanceof ComplexNote) {
+        noteTemplateClone = complexNoteTemplate.content.cloneNode(true);
+        noteTemplateClone.querySelector(".note-description").textContent =
+          note.description;
+      } else {
+        noteTemplateClone = noteTemplate.content.cloneNode(true);
+      }
+
+      const noteElement = noteTemplateClone.querySelector(".note");
+      noteElement.querySelector(".note-title").textContent = note.title;
+
+      const deleteButton = noteElement.querySelector(".delete-note-button");
+      if (deleteButton) {
+        deleteButton.addEventListener("click", (e) => {
+          e.stopPropagation(); // Prevenir que el evento se propague
+          project.removeNote(note);
+          this.renderProjects();
+          saveData();
+        });
+      }
+
+      if (note.color) {
+        noteElement.style.border = `2px solid ${note.color}`;
+        noteElement.style.boxShadow = `0 0 10px ${note.color}`;
+      }
+
+      noteList.appendChild(noteTemplateClone);
+    });
+  }
+}
+// #region Constants
+const bodyColorInput = document.getElementById("bodyColor");
+const containerColorInput = document.getElementById("containerColor");
+
+const todoList = new TODOList();
+const createProjectButton = document.getElementById("createProjectButton");
+const projectList = document.getElementById("projectList");
+
+const projectDialog = document.getElementById("projectDialog");
+const projectForm = document.getElementById("projectForm");
+
+const projectTemplate = document.getElementById("projectTemplate");
+const noteTemplate = document.getElementById("noteTemplate");
+const complexNoteTemplate = document.getElementById("complexNoteTemplate");
+
+const noteDialog = document.getElementById("noteDialog");
+const noteDescriptionCheckbox = document.getElementById("noteDescription");
+const noteForm = document.getElementById("noteForm");
+
+const descriptionField = document.createElement("div");
+descriptionField.innerHTML = `
+  <label for="noteDescriptionText">Descripción</label>
+  <textarea name="noteDescriptionText" id="noteDescriptionText"></textarea>
+`;
+descriptionField.style.display = "none";
+noteForm.insertBefore(descriptionField, noteForm.querySelector("button"));
+
+noteDescriptionCheckbox.addEventListener("change", (event) => {
+  descriptionField.style.display = event.target.checked ? "block" : "none";
+});
+
+createProjectButton.addEventListener("click", () => {
+  projectDialog.showModal();
+});
+
+// #region Event listeners
+
+bodyColorInput.addEventListener("input", (event) => {
+  document.body.style.backgroundColor = event.target.value;
+});
+
+containerColorInput.addEventListener("input", (event) => {
+  document.querySelector(".container").style.backgroundColor =
+    event.target.value;
+});
+
+projectForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(projectForm);
+  const name = formData.get("projectName");
+  const description = formData.get("projectDescription");
+  const project = new Project(name, description, []);
+  todoList.addProject(project);
+  projectDialog.close();
+  todoList.renderProjects();
+  console.log(`Project created: ${project}`);
+  saveData();
+});
+
+noteForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const formData = new FormData(noteForm);
+  const title = formData.get("noteTitle");
+  const color = formData.get("noteColor");
+  const isComplex = noteDescriptionCheckbox.checked;
+  const projectIndex = noteDialog.dataset.currentProject;
+
+  let note;
+  if (isComplex) {
+    const description = formData.get("noteDescriptionText");
+    note = new ComplexNote(title, color, false, description);
+  } else {
+    note = new Note(title, color, false);
+  }
+
+  todoList.projects[projectIndex].addNote(note);
+  noteDialog.close();
+  noteForm.reset();
+  descriptionField.style.display = "none";
+  todoList.renderProjects();
+  saveData();
+});
+
+const allNotes = document.querySelectorAll(".note");
+document.addEventListener("click", (event) => {
+  if (event.target.classList.contains("note")) {
+    if (event.target.classList.contains("note-inset")) {
+      event.target.classList.remove("note-inset");
+      event.target.classList.add("note-normal");
+      event.target.classList.remove("note-completed");
+    } else {
+      event.target.classList.remove("note-normal");
+      event.target.classList.add("note-inset");
+      event.target.classList.add("note-completed");
+    }
+  }
+});
+
+document.querySelectorAll(".animated-text").forEach((text) => {
+  let letters = text.textContent.split("");
+  text.textContent = "";
+  letters.forEach((letter) => {
+    let span = document.createElement("span");
+    span.textContent = letter;
+    text.appendChild(span);
+  });
+});
+
+// #region LocalStorage
+function saveData() {
+  const projectsData = todoList.projects.map((project) => ({
+    name: project.name,
+    description: project.description,
+    notes: project.notes.map((note) => {
+      const baseNote = {
+        type: note instanceof ComplexNote ? "complex" : "simple",
+        title: note.title,
+        color: note.color,
+        complete: note.complete,
+      };
+
+      if (note instanceof ComplexNote) {
+        baseNote.description = note.description;
+      }
+
+      return baseNote;
+    }),
+  }));
+
+  localStorage.setItem("todoList", JSON.stringify(projectsData));
 }
 
-// #region DOM
-document.addEventListener("DOMContentLoaded", () => {
-  const addProjectButton = document.getElementById("addProjectButton");
-  const saveButton = document.getElementById("saveButton");
-  const cancelProjectButton = document.getElementById("cancelProjectButton");
-  const cancelNoteButton = document.getElementById("cancelNoteButton");
-  const addProjectDialog = document.getElementById("addProjectDialog");
-  const addNoteDialog = document.getElementById("addNoteDialog");
-  const addProjectForm = document.getElementById("addProjectForm");
-  const addNoteForm = document.getElementById("addNoteForm");
-  const projectList = document.getElementById("projectList");
-  const projectTemplate = document.querySelector(".project");
-  const noteTemplate = document.querySelector(".note");
-  const complexNoteTemplate = document.querySelector(".complex-note");
+function loadData() {
+  const data = localStorage.getItem("todoList");
+  if (data) {
+    const projectsData = JSON.parse(data);
+    projectsData.forEach((projData) => {
+      const project = new Project(projData.name, projData.description, []);
 
-  const taskList = new TODOList();
-
-
-  //#region Event listeners
-  addProjectButton.addEventListener("click", () => {
-    addProjectDialog.showModal();
-  });
-
-  cancelProjectButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    addProjectForm.reset();
-    addProjectDialog.close();
-  });
-
-  cancelNoteButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    addNoteForm.reset();
-    document.getElementById("descriptionContainer").style.display = "none";
-    document.getElementById("addDescription").checked = false;
-    addNoteDialog.close();
-  });
-
-  addProjectForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    addProject();
-    addProjectDialog.close();
-    renderProjects();
-  });
-
-  addNoteForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    addNote();
-    addNoteDialog.close();
-    renderProjects();
-  });
-
-  //#region RenderProjects
-  function renderProjects() {
-    projectList.innerHTML = "<h2>Proyectos</h2>";
-
-    if (taskList.projects.length === 0) {
-      const emptyState = document.createElement("div");
-      emptyState.className = "empty-state";
-      emptyState.innerHTML = `
-        <p>No tienes proyectos todavía.</p>
-        <button id="createFirstProject">Crear tu primer proyecto</button>
-      `;
-      projectList.appendChild(emptyState);
-
-      document
-        .getElementById("createFirstProject")
-        .addEventListener("click", () => {
-          addProjectDialog.showModal();
-        });
-
-      return;
-    }
-
-    taskList.projects.forEach((project) => {
-      const projectElement = projectTemplate.content.cloneNode(true);
-      const projectName = projectElement.querySelector(".project-name");
-      const projectDescription = projectElement.querySelector(
-        ".project-description"
-      );
-      const noteList = document.createElement("div");
-      noteList.className = "note-list";
-      const addNoteButton = projectElement.querySelector(".add-note");
-      const deleteProjectButton =
-        projectElement.querySelector(".delete-project");
-
-      projectName.textContent = project.name;
-      projectDescription.textContent = project.description;
-
-      projectElement.querySelector("article").appendChild(noteList);
-
-      if (project.notes.length === 0) {
-        const emptyNoteState = document.createElement("p");
-        emptyNoteState.className = "empty-note-state";
-        emptyNoteState.textContent = "No hay notas en este proyecto";
-        noteList.appendChild(emptyNoteState);
-      } else {
-        project.notes.forEach((note) => {
-          const noteElement = renderNote(note, project);
-          noteList.appendChild(noteElement);
-        });
-      }
-
-      addNoteButton.addEventListener("click", () => {
-        addNoteDialog.dataset.projectIndex = taskList.projects.indexOf(project);
-        addNoteDialog.showModal();
-      });
-
-      deleteProjectButton.addEventListener("click", () => {
-        if (
-          confirm(`¿Estás seguro de eliminar el proyecto "${project.name}"?`)
-        ) {
-          taskList.removeProject(project);
-          renderProjects();
-        }
-      });
-
-      projectList.appendChild(projectElement);
-    });
-  }
-
-  //#region RenderNote
-  function renderNote(note, project) {
-    const template = note.description ? complexNoteTemplate : noteTemplate;
-    const noteElement = template.content.cloneNode(true);
-    const noteArticle = noteElement.querySelector("article");
-    const noteName = noteElement.querySelector(".note-name");
-    const deleteNoteButton = document.createElement("button");
-
-    noteName.textContent = note.title;
-
-    if (note.description) {
-      const noteDescription = noteElement.querySelector(".note-description");
-      noteDescription.textContent = note.description;
-    }
-
-    
-    noteArticle.style.backgroundColor = note.color;
-
-   
-    const brightness = calculateBrightness(note.color);
-    const textColor = brightness > 128 ? "black" : "white";
-    noteArticle.style.color = textColor;
-
-    const completeCheckbox = noteElement.querySelector(
-      'input[type="checkbox"]'
-    );
-    if (completeCheckbox) {
-      completeCheckbox.checked = note.complete;
-      completeCheckbox.addEventListener("change", () => {
-        note.complete = completeCheckbox.checked;
-
-        if (note.complete) {
-          noteArticle.style.opacity = "0.6";
-          noteArticle.style.textDecoration = "line-through";
-        } else {
-          noteArticle.style.opacity = "1";
-          noteArticle.style.textDecoration = "none";
-        }
-
-        saveData();
-      });
-
-      if (note.complete) {
-        noteArticle.style.opacity = "0.6";
-        noteArticle.style.textDecoration = "line-through";
-      }
-    }
-
-    deleteNoteButton.textContent = "Eliminar";
-    deleteNoteButton.className = "delete-note";
-    deleteNoteButton.addEventListener("click", () => {
-      if (confirm("¿Estás seguro de eliminar esta nota?")) {
-        project.removeNote(note);
-        renderProjects();
-      }
-    });
-
-    noteArticle.appendChild(deleteNoteButton);
-
-    return noteArticle;
-  }
-
-  //#region AddProject
-  function addProject() {
-    const formData = new FormData(addProjectForm);
-    const projectName = formData.get("projectName");
-    const projectDescription = formData.get("projectDescription");
-
-    if (!projectName) {
-      alert("El projecto debe de tener nombre");
-      return;
-    }
-
-    const project = new Project(projectName, projectDescription, []);
-    taskList.addProject(project);
-    addProjectForm.reset();
-    saveData(); 
-  }
-
-  //#region AddNote
-  function addNote() {
-    const formData = new FormData(addNoteForm);
-    const noteTitle = formData.get("noteTitle");
-    let noteColor = formData.get("color");
-    if (!noteColor || !/^#[0-9A-Fa-f]{6}$/.test(noteColor)) {
-      noteColor = "#ffffff"; 
-    }
-    const addDescription = document.getElementById("addDescription");
-    const projectIndex = parseInt(addNoteDialog.dataset.projectIndex, 10);
-
-    if (!noteTitle) {
-      alert("La nota debe tener título");
-      return;
-    }
-
-    if (
-      isNaN(projectIndex) ||
-      projectIndex < 0 ||
-      projectIndex >= taskList.projects.length
-    ) {
-      alert("Selecciona un proyecto válido");
-      return;
-    }
-
-    let note;
-    if (addDescription.checked) {
-      const noteDescription = formData.get("noteDescription");
-      note = new ComplexNote(noteTitle, noteColor, false, noteDescription);
-    } else {
-      note = new Note(noteTitle, noteColor, false);
-    }
-
-    taskList.projects[projectIndex].addNote(note);
-    addNoteForm.reset();
-    const descriptionContainer = document.getElementById(
-      "descriptionContainer"
-    );
-    if (descriptionContainer) {
-      descriptionContainer.style.display = "none";
-    }
-    document.getElementById("addDescription").checked = false;
-    saveData(); 
-  }
-
-  
-  //#region CalculateBrightness
-  function calculateBrightness(hex) {
-    const rgb = hexToRgb(hex);
-    return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-  }
-
-  function hexToRgb(hex) {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-        }
-      : null;
-  }
-
-  loadData();
-  renderProjects();
-
-  saveButton.addEventListener("click", () => {
-    saveData();
-    alert("Datos guardados");
-  });
-
-  //#region Save & load data
-  function saveData() {
-    localStorage.setItem("todoListData", JSON.stringify(taskList.projects));
-  }
-
-  function loadData() {
-    const savedData = localStorage.getItem("todoListData");
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        parsedData.forEach((projectData) => {
-          const project = new Project(
-            projectData._name,
-            projectData._description,
-            []
-          );
-
-          if (projectData._notes && Array.isArray(projectData._notes)) {
-            projectData._notes.forEach((noteData) => {
-              let note;
-              if (noteData._description !== undefined) {
-                note = new ComplexNote(
-                  noteData._title,
-                  noteData._color,
-                  noteData._complete,
-                  noteData._description
-                );
-              } else {
-                note = new Note(
-                  noteData._title,
-                  noteData._color,
-                  noteData._complete
-                );
-              }
-              project.addNote(note);
-            });
+      if (projData.notes && Array.isArray(projData.notes)) {
+        projData.notes.forEach((noteData) => {
+          let note;
+          if (noteData.type === "complex") {
+            note = new ComplexNote(
+              noteData.title,
+              noteData.color,
+              noteData.complete,
+              noteData.description
+            );
+          } else {
+            note = new Note(noteData.title, noteData.color, noteData.complete);
           }
-
-          taskList.addProject(project);
+          project.addNote(note);
         });
-      } catch (error) {
-        console.error("Error loading saved data:", error);
-        localStorage.removeItem("todoListData");
       }
-    }
-  }
 
-  window.addEventListener("beforeunload", saveData);
+      todoList.addProject(project);
+    });
+  }
+}
+
+window.addEventListener("load", () => {
+  loadData();
+  todoList.renderProjects();
 });
